@@ -1,0 +1,62 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Services & Products - Service CRM{% endblock %}
+
+{% block content %}
+<div class="sm:flex sm:items-center sm:justify-between px-4 py-5 sm:px-6">
+    <div>
+        <h1 class="text-2xl font-bold text-gray-900">Services & Products</h1>
+        <p class="mt-1 text-sm text-gray-500">Manage your services and products</p>
+    </div>
+    <div class="mt-4 sm:mt-0">
+        <a href="{% url 'product-create' %}" class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+            <svg class="-ml-1 mr-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+            </svg>
+            Add Service
+        </a>
+    </div>
+</div>
+
+{% if products %}
+<div class="bg-white shadow overflow-hidden sm:rounded-md">
+    <ul class="divide-y divide-gray-200">
+        {% for product in products %}
+        <li>
+            <div class="px-4 py-4 flex items-center sm:px-6">
+                <div class="min-w-0 flex-1 sm:flex sm:items-center sm:justify-between">
+                    <div>
+                        <div class="flex text-sm">
+                            <p class="font-medium text-blue-600 truncate">{{ product.name }}</p>
+                            <p class="ml-1 font-medium text-gray-500 truncate">- ${{ product.price }}</p>
+                        </div>
+                        <div class="mt-2">
+                            <div>
+                                <p class="text-sm text-gray-500">
+                                    {% if product.description %}
+                                    {{ product.description|truncatechars:150 }}
+                                    {% else %}
+                                    <span class="text-gray-400">No description provided</span>
+                                    {% endif %}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="ml-5 flex-shrink-0">
+                    <a href="{% url 'product-update' product.pk %}" class="inline-flex items-center px-3 py-1 border border-transparent text-sm leading-5 font-medium rounded-md text-gray-700 bg-gray-100 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
+                        Edit
+                    </a>
+                </div>
+            </div>
+        </li>
+        {% endfor %}
+    </ul>
+</div>
+{% else %}
+<div class="bg-white shadow overflow-hidden sm:rounded-md p-6">
+    <p class="text-center text-gray-500">No services or products found. Add your first service to get started!</p>
+</div>
+{% endif %}
+{% endblock %}

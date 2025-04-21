@@ -1,0 +1,167 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Dashboard - Service CRM{% endblock %}
+
+{% block content %}
+<div class="px-4 py-5 sm:px-6">
+    <h1 class="text-2xl font-bold text-gray-900">Dashboard</h1>
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+    <!-- Summary cards -->
+    <div class="bg-white rounded-lg shadow p-6">
+        <div class="flex items-center">
+            <div class="flex-shrink-0 rounded-md bg-blue-500 p-3">
+                <svg class="h-6 w-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+            </div>
+            <div class="ml-5">
+                <h3 class="text-lg font-medium text-gray-900">Customers</h3>
+                <div class="mt-1 text-3xl font-semibold text-gray-700">{{ total_customers }}</div>
+            </div>
+        </div>
+        <div class="mt-4">
+            <a href="{% url 'customer-list' %}" class="text-sm font-medium text-blue-600 hover:text-blue-800">View all customers</a>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow p-6">
+        <div class="flex items-center">
+            <div class="flex-shrink-0 rounded-md bg-green-500 p-3">
+                <svg class="h-6 w-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+            </div>
+            <div class="ml-5">
+                <h3 class="text-lg font-medium text-gray-900">Today's Appointments</h3>
+                <div class="mt-1 text-3xl font-semibold text-gray-700">{{ today_appointments.count }}</div>
+            </div>
+        </div>
+        <div class="mt-4">
+            <a href="{% url 'appointment-calendar' %}" class="text-sm font-medium text-blue-600 hover:text-blue-800">View calendar</a>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow p-6">
+        <div class="flex items-center">
+            <div class="flex-shrink-0 rounded-md bg-yellow-500 p-3">
+                <svg class="h-6 w-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                </svg>
+            </div>
+            <div class="ml-5">
+                <h3 class="text-lg font-medium text-gray-900">Upcoming Appointments</h3>
+                <div class="mt-1 text-3xl font-semibold text-gray-700">{{ upcoming_appointments.count }}</div>
+            </div>
+        </div>
+        <div class="mt-4">
+            <a href="{% url 'appointment-list' %}" class="text-sm font-medium text-blue-600 hover:text-blue-800">View all appointments</a>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow p-6">
+        <div class="flex items-center">
+            <div class="flex-shrink-0 rounded-md bg-red-500 p-3">
+                <svg class="h-6 w-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+            </div>
+            <div class="ml-5">
+                <h3 class="text-lg font-medium text-gray-900">Pending Payments</h3>
+                <div class="mt-1 text-3xl font-semibold text-gray-700">{{ pending_payments.count }}</div>
+            </div>
+        </div>
+        <div class="mt-4">
+            <a href="{% url 'appointment-list' %}" class="text-sm font-medium text-blue-600 hover:text-blue-800">View all payments</a>
+        </div>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <!-- Today's appointments -->
+    <div class="bg-white rounded-lg shadow overflow-hidden">
+        <div class="px-4 py-5 border-b border-gray-200 sm:px-6">
+            <h3 class="text-lg font-medium leading-6 text-gray-900">Today's Appointments</h3>
+        </div>
+        {% if today_appointments %}
+        <ul class="divide-y divide-gray-200">
+            {% for appointment in today_appointments %}
+            <li class="p-4 hover:bg-gray-50">
+                <a href="{% url 'appointment-detail' appointment.pk %}" class="block">
+                    <div class="flex justify-between">
+                        <div>
+                            <p class="font-medium text-gray-900">{{ appointment.customer.name }}</p>
+                            <p class="text-sm text-gray-500">{{ appointment.start_time|date:"g:i A" }} - {{ appointment.end_time|date:"g:i A" }}</p>
+                            {% if appointment.product %}
+                            <p class="text-sm text-gray-500">{{ appointment.product.name }} - ${{ appointment.product.price }}</p>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {% if appointment.payment_status == 'PAID' %}bg-green-100 text-green-800{% else %}bg-yellow-100 text-yellow-800{% endif %}">
+                                {{ appointment.get_payment_status_display }}
+                            </span>
+                        </div>
+                    </div>
+                </a>
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <div class="p-6 text-center text-gray-500">
+            No appointments scheduled for today.
+        </div>
+        {% endif %}
+        <div class="px-4 py-3 bg-gray-50 text-right sm:px-6">
+            <a href="{% url 'appointment-create' %}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                Add New Appointment
+            </a>
+        </div>
+    </div>
+
+    <!-- Pending payments -->
+    <div class="bg-white rounded-lg shadow overflow-hidden">
+        <div class="px-4 py-5 border-b border-gray-200 sm:px-6">
+            <h3 class="text-lg font-medium leading-6 text-gray-900">Pending Payments</h3>
+        </div>
+        {% if pending_payments %}
+        <ul class="divide-y divide-gray-200">
+            {% for appointment in pending_payments|slice:":5" %}
+            <li class="p-4 hover:bg-gray-50">
+                <a href="{% url 'appointment-detail' appointment.pk %}" class="block">
+                    <div class="flex justify-between">
+                        <div>
+                            <p class="font-medium text-gray-900">{{ appointment.customer.name }}</p>
+                            <p class="text-sm text-gray-500">{{ appointment.start_time|date:"M d, Y" }} at {{ appointment.start_time|date:"g:i A" }}</p>
+                            {% if appointment.product %}
+                            <p class="text-sm text-gray-700">${{ appointment.product.price }}</p>
+                            {% endif %}
+                        </div>
+                        <div class="flex items-center">
+                            <form hx-post="{% url 'payment-status-update' appointment.pk %}" hx-swap="none" class="inline-block">
+                                {% csrf_token %}
+                                <input type="hidden" name="payment_status" value="PAID">
+                                <button type="submit" class="inline-flex items-center px-3 py-1 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-1 focus:ring-offset-1 focus:ring-green-500">
+                                    Mark Paid
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </a>
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <div class="p-6 text-center text-gray-500">
+            No pending payments!
+        </div>
+        {% endif %}
+        <div class="px-4 py-3 bg-gray-50 text-right sm:px-6">
+            <a href="{% url 'appointment-list' %}" class="text-sm font-medium text-blue-600 hover:text-blue-800">
+                View All Pending Payments
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

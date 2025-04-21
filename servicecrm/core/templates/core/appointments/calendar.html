@@ -1,0 +1,124 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Calendar - Service CRM{% endblock %}
+
+{% block extra_css %}
+<!-- FullCalendar CSS -->
+<link href="https://cdn.jsdelivr.net/npm/fullcalendar@5.10.1/main.min.css" rel="stylesheet">
+<style>
+    .fc-event {
+        cursor: pointer;
+    }
+    
+    .fc-event-paid {
+        background-color: rgba(16, 185, 129, 0.8);
+        border-color: rgb(16, 185, 129);
+    }
+    
+    .fc-event-pending {
+        background-color: rgba(245, 158, 11, 0.8);
+        border-color: rgb(245, 158, 11);
+    }
+    .fc-event-canceled {
+        background-color: rgba(156, 163, 175, 0.8); /* gray-400 */
+        border-color: rgb(156, 163, 175);
+        text-decoration: line-through;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="sm:flex sm:items-center sm:justify-between px-4 py-5 sm:px-6">
+    <div>
+        <h1 class="text-2xl font-bold text-gray-900">Calendar</h1>
+        <p class="mt-1 text-sm text-gray-500">Manage your appointments calendar</p>
+    </div>
+    <div class="mt-4 sm:mt-0">
+        <a href="{% url 'appointment-create' %}" class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+            <svg class="-ml-1 mr-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+            </svg>
+            New Appointment
+        </a>
+    </div>
+</div>
+
+<div class="bg-white shadow rounded-lg">
+    <div class="p-4 sm:p-6">
+        <div id="calendar"></div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- FullCalendar JS -->
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.10.1/main.min.js"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var calendarEl = document.getElementById('calendar');
+        var csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        
+        var calendar = new FullCalendar.Calendar(calendarEl, {
+            initialView: 'dayGridMonth',
+            headerToolbar: {
+                left: 'prev,next today',
+                center: 'title',
+                right: 'dayGridMonth,timeGridWeek,timeGridDay'
+            },
+            events: function(info, successCallback, failureCallback) {
+                console.log("Fetching events from:", info.startStr, "to:", info.endStr);
+                
+                fetch('{% url "appointment-calendar" %}', {
+                    method: 'POST',
+                    body: new URLSearchParams({
+                        'start': info.startStr,
+                        'end': info.endStr
+                    }),
+                    headers: {
+                        'X-CSRFToken': csrfToken,
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    }
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! Status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log("Received events:", data);
+                    
+                    // Process each event
+                    var events = data.map(function(event) {
+                        if (event.status === 'PAID') {
+                            event.className = 'fc-event-paid';
+                        } else if (event.status === 'CANCELED') {
+                            event.className = 'fc-event-canceled';
+                        } else {
+                            event.className = 'fc-event-pending';
+                        }
+                        return event;
+                    });
+                    
+                    successCallback(events);
+                })
+                .catch(error => {
+                    console.error('Error fetching calendar events:', error);
+                    failureCallback(error);
+                });
+            },
+            eventTimeFormat: {
+                hour: 'numeric',
+                minute: '2-digit',
+                meridiem: 'short'
+            },
+            height: 'auto'
+        });
+        
+        calendar.render();
+    });
+</script>
+{% csrf_token %}
+{% endblock %}
